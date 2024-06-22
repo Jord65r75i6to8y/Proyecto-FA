@@ -24,6 +24,7 @@ read:
 
 print:
     li $t1, 0         # Inicializar indice de caracteres
+    li $t5, 16
 
 print_loop:
 
@@ -32,8 +33,8 @@ print_loop:
     
     sub $t2, $t2, '0'       # Convertir ASCII a entero
     
-    # Calcular la direcciï¿½n en display
-    mul $t4, $t1, $a1       # Calcular el desplazamiento en display
+    # Calcular la direccion en display
+    mul $t4, $t1, $t5       # Calcular el desplazamiento en display
     add $a2, $t4, $a1       # Sumar al desplazamiento de la direccion base de display
     
     # Saltar a la subrutina correspondiente
@@ -48,7 +49,7 @@ print_loop:
     beq $t2, 8, print_8
     beq $t2, 9, print_9
     
-    addi $t1, $t1, 1 # Incrementar el ï¿½ndice de caracteres
+    addi $t1, $t1, 1 # Incrementar el ïndice de caracteres
     j print_loop
 
 end_print:
