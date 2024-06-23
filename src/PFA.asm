@@ -1,298 +1,426 @@
 .data
 display: .space 1024
-term1: .space 3
-term2: .space 3
+term1: .space 5
+
+term2: .space 5
+hla: .ascii "evaluado"
 .text
 
 li $t0, 0x007f1c
 .globl main
 
 main:
-    li $v0, 8         # Leer cadena
-    la $a0, term1     # Direccion de la cadena
-    li $a1, 4         # Longitud maxima de la cadena
-    syscall
-    
-    jal print
-    
-    li $v0, 10        # Salir
-    syscall
-    
-read:
-	li $t1, 0
-	jr $ra
+
+	li $t3, 0
+	jal print_log
+
+	li $v0, 10   
+	syscall
+
 
 print:
-    li $t1, 0         # Inicializar indice de caracteres
-    li $t5, 16
+	li $t1, 0
+	move $t5, $ra
+	
+	print_loop:
 
-print_loop:
+		lb $t2, term1($t1)
+		beq $t1, 5, exit_loop
 
-    lb $t2, term1($t1)   # Cargar caracter de term1[$t1]
-    beqz $t2, end_print
+		sub $t2, $t2, '0' 
     
-    sub $t2, $t2, '0'       # Convertir ASCII a entero
-    
-    # Calcular la direccion en display
-    mul $t4, $t1, $t5       # Calcular el desplazamiento en display
-    add $a2, $t4, $a1       # Sumar al desplazamiento de la direccion base de display
-    
-    # Saltar a la subrutina correspondiente
-    beq $t2, 0, print_0
-    beq $t2, 1, print_1
-    beq $t2, 2, print_2
-    beq $t2, 3, print_3
-    beq $t2, 4, print_4
-    beq $t2, 5, print_5
-    beq $t2, 6, print_6
-    beq $t2, 7, print_7
-    beq $t2, 8, print_8
-    beq $t2, 9, print_9
-    
-    addi $t1, $t1, 1 # Incrementar el ïndice de caracteres
-    j print_loop
+		mul $t4, $t1, $a2      
+		add $t3, $t4, $a1
+		li $t6, 0
 
-end_print:
-    jr $ra
-
+		bne $t2, $t6, number_1
+		jal print_0
+number_1:	addi $t6, $t6, 1
+		bne $t2, $t6, number_2
+		jal print_1
+number_2:	addi $t6, $t6, 1
+		bne $t2, $t6, number_3
+		jal print_2
+number_3:	addi $t6, $t6, 1
+		bne $t2, $t6, number_4
+		jal print_3
+number_4:	addi $t6, $t6, 1
+		bne $t2, $t6, number_5
+		jal print_4
+number_5:	addi $t6, $t6, 1
+		bne $t2, $t6, number_6
+		jal print_5
+number_6:	addi $t6, $t6, 1
+		bne $t2, $t6, number_7
+		jal print_6
+number_7:	addi $t6, $t6, 1
+		bne $t2, $t6, number_8
+		jal print_7
+number_8:	addi $t6, $t6, 1
+		bne $t2, $t6, number_9
+		jal print_8
+number_9:	addi $t6, $t6, 1
+		bne $t2, $t6, end_conditional
+		jal print_9
+		addi $t6, $t6, 1
+		
+		
+end_conditional: 
+    
+		addi $t1, $t1, 1
+		
+		j print_loop
+    
+	exit_loop:
+	
+		jr $t5
+	
+	
 print_0 :
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 	
 print_1 :
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 252
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	
 	jr $ra
 	
 print_2 : 
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 252
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 print_3 : 
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 print_4 :
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 print_5:
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 
 print_6:
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 print_7:
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 252
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 252
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
 	
 	
 	jr $ra
 print_8:
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
 	
 	jr $ra
 	
 print_9:
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 8
-	sw $t0, display($a2)
-	addi $a2, $a2, 248
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 4
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
-	addi $a2, $a2, 256
-	sw $t0, display($a2)
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 248
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
 	
 	jr $ra
+	
+print_Division:
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	
+	jr $ra
+
+print_Mult:
+
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	
+	jr $ra
+	
+print_plus:
+	addi $t3, $t3, 260
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	
+	jr $ra
+	
+print_substract:
+
+	addi $t3, $t3, 512
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	
+	jr $ra
+	
+print_pow:
+
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	
+	jr $ra
+	
+print_root:
+
+	addi $t3, $t3, 256
+	addi $t3, $t3, 256
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 8
+	sw $t0, display($t3)
+	addi $t3, $t3, 252
+	sw $t0, display($t3)	
+	
+	jr $ra
+	
+print_log:
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 256
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	addi $t3, $t3, 4
+	sw $t0, display($t3)
+	
+	jr $ra
+
+	
+	
+
+	
+	
+	
+	
