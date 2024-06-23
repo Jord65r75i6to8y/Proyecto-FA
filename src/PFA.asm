@@ -1,4 +1,4 @@
-.data
+.data 
 display: .space 16384
 term1: .space 5
 operador:.space 1
