@@ -1,56 +1,190 @@
 .data
-display: .space 16384
-term1: .space 5
-Operand:.space 1
-term2: .space 5
-hla: .asciiz  "\n\n"
+display: .space 16384       # Espacio para la pantalla
+term1: .space 7             # Espacio para el primer número
+operador: .space 1          # Espacio para el operador
+term2: .space 7             # Espacio para el segundo número
+hla: .asciiz "\n\n"         # Nueva línea
+max_digits: .asciiz "99999999999999"  # Máximo dígitos para el número
+result: .space 15           # Espacio para el resultado
+invalid_op_message: .asciiz "Operador no válido. Fin del programa.\n"
 .text
 li $t0, 0x007f1c
 .globl main
 
 main:
+    # Leer primer número
+    la $a0, term1
+    jal Leer_entrada
 
-	li $v0, 8
-	la $a0, term1
-	li $a1, 5
-	syscall
-	
-	li $a1, 0
-	li $a2, 16
-	la $a3, term1
-	jal print
-	
-	li $v0, 4
-	la $a0, hla
-	syscall
-	
-	li $v0, 8
-	la $a0, Operand 
-	li $a1, 2
-	syscall
-	
-	li $a1, 80
-	li $a2, 16
-	la $a3, Operand
-	jal print
+    # Mostrar primer número
+    li $a1, 4
+    li $a2, 16
+    la $a3, term1
+    jal print
 
-	li $v0, 4
-	la $a0, hla
-	syscall
+    # Salto de línea
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    # Leer operador
+    la $a0, operador
+    jal Leer_entrada
+
+    # Mostrar operador
+    li $a1, 116
+    li $a2, 16
+    la $a3, operador
+    jal print
+
+    # Salto de línea
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    # Leer segundo número
+    la $a0, term2
+    jal Leer_entrada
+
+    # Mostrar segundo número
+    li $a1, 148
+    li $a2, 16
+    la $a3, term2
+    jal print
+
+    # Convertir term1 a entero
+    la $a0, term1
+    jal string_to_int
+    move $t1, $v0  # Guardar entero en $t1
+
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    li $v0, 1
+    move $a0, $t1
+    syscall
+
+    # Convertir term2 a entero
+    la $a0, term2
+    jal string_to_int
+    move $t2, $v0  # Guardar entero en $t2
+    
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    li $v0, 1
+    move $a0, $t2
+    syscall
+    
+    # Realizar operación
+    la $a0, operador
+    lb $t3, 0($a0)
+    sub $t3, $t3, '0'
+    
+    li $t5, '+'   # Cargar el carácter '+'
+    sub $t5, $t5, '0'
+    beq $t3, $t5, suma
+    li $t5, '-'   # Cargar el carácter '-'
+    sub $t5, $t5, '0'
+    beq $t3, $t5, resta
+    li $t5, '*'   # Cargar el carácter '*'
+    sub $t5, $t5, '0'
+    beq $t3, $t5, multiplicacion
+    li $t5, '/'   # Cargar el carácter '/'
+    sub $t5, $t5, '0' 
+    beq $t3, $t5, division
+
+    # En caso de operador no válido, terminar el programa
+    j invalid_operator
+
+# Operaciones
+suma:
+    add $t4, $t1, $t2
+    j imprimir_resultado
+
+resta:
+    sub $t4, $t1, $t2
+    j imprimir_resultado
+
+multiplicacion:
+    mul $t4, $t1, $t2
+    j imprimir_resultado
+
+division:
+    div $t4, $t1, $t2
+    j imprimir_resultado
+    
+invalid_operator:
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    li $v0, 4
+    la $a0, invalid_op_message
+    syscall
+
+    li $v0, 10
+    syscall
+
+imprimir_resultado:
+    li $v0, 4
+    la $a0, hla
+    syscall
+
+    li $v0, 1
+    move $a0, $t4
+    syscall
+
+    li $v0, 10
+    syscall
+    
+string_to_int:
+    li $v0, 0        # Inicializar el resultado en 0
+    li $t5, 10       # Constante para la base decimal (10)
+
+convert_loop:
+    lb $t1, 0($a0)   # Cargar el siguiente byte del string
+    beqz $t1, end_convert  # Si es el byte nulo, terminar la conversión
+    
+    # Verificar si el carácter es un dígito válido ('0' a '9')
+    li $t2, '0'
+    li $t3, '9'
+    blt $t1, $t2, end_convert # Si es menor que '0', terminar la conversión
+    bgt $t1, $t3, end_convert  # Si es mayor que '9', terminar la conversión
+
+    sub $t1, $t1, '0'  # Convertir el carácter a su valor numérico
+    mul $v0, $v0, $t5  # Multiplicar el resultado actual por 10
+    add $v0, $v0, $t1  # Añadir el valor del carácter al resultado
+    addi $a0, $a0, 1   # Avanzar al siguiente carácter
+    j convert_loop     # Repetir el bucle
+
+end_convert:
+    jr $ra  # Volver al llamador
+    
+Leer_entrada:
+	li $t1, 0
+	li $t2, 0xFFFF0004  # Dirección del teclado
+	li $t3, 0xFFFF0000  
 	
-	li $v0, 8
-	la $a0, term2
-	li $a1, 5
-	syscall
+Loop_de_leer:
+	lw $t4, 0($t3)       # lee el estado del teclado en loop
+	andi $t4, $t4, 0x01  
+	beqz $t4, Loop_de_leer 
 	
-	li $a1, 112
-	li $a2, 16
-	la $a3, term2
-	jal print
+	lb $t5, 0($t2)       
+	sb $t5, 0($a0)       
+	addi $a0, $a0, 1     
+	li $t6, 0x0A         
+	beq $t5, $t6, Fin_del_loop_de_leer  
 	
-	li $v0, 10
-	syscall 
-	
+	j Loop_de_leer          
+
+Fin_del_loop_de_leer:
+	sb $zero, 0($a0)     
+	jr $ra
+
 print:
 	li $t1, 0
 	move $t5, $ra
