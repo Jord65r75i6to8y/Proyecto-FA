@@ -4,8 +4,8 @@ term1: .space 7             # Espacio para el primer número
 operador: .space 1          # Espacio para el operador
 term2: .space 7             # Espacio para el segundo número
 hla: .asciiz "\n\n"         # Nueva línea
-max_digits: .asciiz "99999999999999"  # Máximo dígitos para el número
-result: .space 15           # Espacio para el resultado
+max_digits: .asciiz "99999999999999" 
+result: .space 14
 invalid_op_message: .asciiz "Operador no válido. Fin del programa.\n"
 .text
 li $t0, 0x007f1c
@@ -55,29 +55,21 @@ main:
     # Convertir term1 a entero
     la $a0, term1
     jal string_to_int
-    move $t1, $v0  # Guardar entero en $t1
+    move $a1, $v0  # Guardar entero en $t1
 
     li $v0, 4
     la $a0, hla
     syscall
-
-    li $v0, 1
-    move $a0, $t1
-    syscall
-
+    
     # Convertir term2 a entero
     la $a0, term2
     jal string_to_int
-    move $t2, $v0  # Guardar entero en $t2
+    move $a2, $v0  # Guardar entero en $t2
     
     li $v0, 4
     la $a0, hla
     syscall
 
-    li $v0, 1
-    move $a0, $t2
-    syscall
-    
     # Realizar operación
     la $a0, operador
     lb $t3, 0($a0)
@@ -95,27 +87,74 @@ main:
     li $t5, '/'   # Cargar el carácter '/'
     sub $t5, $t5, '0' 
     beq $t3, $t5, division
+    li $t5, 'v'
+    sub $t5, $t5, '0' 
+    beq $t3, $t5, OperationRoot
+    li $t5, '%'
+    sub $t5, $t5, '0' 
+    beq $t3, $t5, OperationMod
+    li $t5, 'L'
+    sub $t5, $t5, '0' 
+    beq $t3, $t5, OperationLog
 
     # En caso de operador no válido, terminar el programa
     j invalid_operator
 
 # Operaciones
 suma:
-    add $t4, $t1, $t2
+    add $t4, $a1, $a2
     j imprimir_resultado
 
 resta:
-    sub $t4, $t1, $t2
+    sub $t4, $a1, $a2
     j imprimir_resultado
 
 multiplicacion:
-    mul $t4, $t1, $t2
+    mul $t4, $a1, $a2
     j imprimir_resultado
 
 division:
-    div $t4, $t1, $t2
+    div $t4, $a1, $a2
     j imprimir_resultado
     
+OperationRoot:
+    li $t4, 0           # Inicializa el contador de exponente en 0
+
+root_loop:
+    mul $t5, $t4, $a1   # $t5 = b^k
+    bge $t5, $a2, end_root  # Salir del bucle si b^k >= a
+    
+    addi $t4, $t4, 1    # Incrementa el contador de exponente
+    j root_loop         # Continúa el bucle
+
+end_root:
+    bne $t5, $a2, RootSubstract   # Si b^k no es igual a a, restar 1 al resultado
+    j imprimir_resultado          # Retorna al registro de retorno
+
+RootSubstract:
+    subi $t4, $t4, 1    # Si b^k es mayor que a, restar 1 al resultado
+    j imprimir_resultado              # Retorna al registro de retorno
+    
+OperationMod:
+    div $a1, $a2       # Divide a entre b
+    mfhi $t4           # Obtiene el residuo de la división y lo guarda en t4
+    j imprimir_resultado
+     
+OperationLog:
+    li $t4, 1           # Inicializa el contador de exponente en 0
+
+log_loop:
+    mul $t5, $a2, $a2   # $t5 = b^k
+    bge $t5, $a1, end_log  # Salir del bucle si b^k >= a
+    
+    addi $t4, $t4, 1    # Incrementa el contador de exponente
+    j log_loop          # Continúa el bucle
+
+end_log:
+    subi $t4, $t4, 1    # Reduce el contador en 1 para obtener el mayor k tal que b^k <= a
+    jr $ra              # Retorna al regi
+        
+
 invalid_operator:
     li $v0, 4
     la $a0, hla
@@ -129,22 +168,68 @@ invalid_operator:
     syscall
 
 imprimir_resultado:
-    li $v0, 4
-    la $a0, hla
-    syscall
 
-    li $v0, 1
-    move $a0, $t4
-    syscall
+	move $a0, $t4
+	la $a1, result
+	jal int_to_string
+	
+	li $v0, 4
+	la $a0, result
+	syscall
+	
+	li $t0, 0x007f1c
+	li $a1, 1600
+	li $a2, 16
+	la $a3, result 
+	jal print
+	
+	li $v0, 10 
+	syscall
+    
+int_to_string:
+    move $t0, $a0       # Guardar el entero en $t0
+    li $t2, 10          # Constante para la base decimal (10)
+    la $t3, result + 14 
+    li $t4, 0           
+    sb $zero, -1($t3)   # Añadir el byte nulo al final del buffer
 
-    li $v0, 10
-    syscall
+convert_loop:
+    beqz $t0, check_zero   # Si $t0 es 0, verificar si hay que añadir '0'
+    div $t0, $t0, $t2     
+    mfhi $t5               # Obtener el resto de la división
+    addi $t5, $t5, '0'    
+    subi $t3, $t3, 1       
+    sb $t5, 0($t3)         # Almacenar el carácter en el buffer
+    addi $t4, $t4, 1       
+    j convert_loop         # Repetir el bucle
+
+check_zero:
+    bnez $t4, store_string # Si hay dígitos, saltar a almacenar la cadena
+    li $t5, '0'           
+    subi $t3, $t3, 1       
+    sb $t5, 0($t3)         # Almacenar '0' en el buffer
+
+store_string:
+    move $a2, $t3          # Apuntar $a2 al primer carácter del número convertido
+    move $a3, $a1          # Apuntar $a3 al buffer de destino
+
+copy_loop:
+    lb $t6, 0($a2)         # Leer un byte del número convertido
+    beqz $t6, end_copy     # Si es el byte nulo, terminar la copia
+    sb $t6, 0($a3)         
+    addi $a2, $a2, 1     
+    addi $a3, $a3, 1       
+    j copy_loop            # Repetir hasta que se copien todos los bytes
+
+end_copy:
+    sb $zero, 0($a3)       # Añadir el byte nulo al final del buffer de destino
+    jr $ra                 # Volver al llamador
     
 string_to_int:
     li $v0, 0        # Inicializar el resultado en 0
     li $t5, 10       # Constante para la base decimal (10)
 
-convert_loop:
+convert_loopINT:
     lb $t1, 0($a0)   # Cargar el siguiente byte del string
     beqz $t1, end_convert  # Si es el byte nulo, terminar la conversión
     
@@ -155,10 +240,10 @@ convert_loop:
     bgt $t1, $t3, end_convert  # Si es mayor que '9', terminar la conversión
 
     sub $t1, $t1, '0'  # Convertir el carácter a su valor numérico
-    mul $v0, $v0, $t5  # Multiplicar el resultado actual por 10
-    add $v0, $v0, $t1  # Añadir el valor del carácter al resultado
-    addi $a0, $a0, 1   # Avanzar al siguiente carácter
-    j convert_loop     # Repetir el bucle
+    mul $v0, $v0, $t5  
+    add $v0, $v0, $t1 
+    addi $a0, $a0, 1  
+    j convert_loopINT    
 
 end_convert:
     jr $ra  # Volver al llamador
@@ -253,6 +338,7 @@ pow:		addi $t6, $t6, 18
 root:		addi $t6, $t6, 24
 		bne $t2, $t6, end_conditional
 		jal print_root
+		
 		
 end_conditional: 
     
