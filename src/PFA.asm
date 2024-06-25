@@ -1,90 +1,101 @@
 .data
+# Sección de Datos
+# En esta sección se declaran las variables y se reserva espacio en memoria para varios elementos 
+# utilizados en el programa. Esto incluye espacio para la pantalla, los números ingresados, el operador 
+# y otros elementos necesarios para la ejecución del programa.
 display: .space 16384       # Espacio para la pantalla
 term1: .space 7             # Espacio para el primer número
 operador: .space 1          # Espacio para el operador
 term2: .space 7             # Espacio para el segundo número
 hla: .asciiz "\n\n"         # Nueva línea
-max_digits: .asciiz "99999999999999" 
+max_digits: .asciiz "9999999999999" 
 result: .space 14
 invalid_op_message: .asciiz "Operador no válido. Fin del programa.\n"
 .text
 li $t0, 0x007f1c
 .globl main
 
+
+# Sección de Texto
+# En esta sección se encuentra el código que se ejecuta. Aquí se define el punto de entrada del 
+# programa, las instrucciones para leer y escribir datos, y las operaciones necesarias para realizar el 
+# cálculo solicitado por el usuario. Esta sección también contiene el manejo de errores y la lógica para
+# cálculo solicitado por el usuario. Esta sección también contiene el manejo de errores y la lógica para
+# realizar operaciones aritméticas basadas en el operador ingresado.
 main:
-    # Leer primer número
+ 
     la $a0, term1
     jal Leer_entrada
 
-    # Mostrar primer número
+  
     li $a1, 4
     li $a2, 16
     la $a3, term1
     jal print
 
-    # Salto de línea
+
     li $v0, 4
     la $a0, hla
     syscall
 
-    # Leer operador
+ 
     la $a0, operador
     jal Leer_entrada
 
-    # Mostrar operador
+
     li $a1, 116
     li $a2, 16
     la $a3, operador
     jal print
 
-    # Salto de línea
+    
     li $v0, 4
     la $a0, hla
     syscall
 
-    # Leer segundo número
+  
     la $a0, term2
     jal Leer_entrada
 
-    # Mostrar segundo número
+   
     li $a1, 148
     li $a2, 16
     la $a3, term2
     jal print
 
-    # Convertir term1 a entero
+
     la $a0, term1
     jal string_to_int
-    move $a1, $v0  # Guardar entero en $t1
+    move $a1, $v0  
 
     li $v0, 4
     la $a0, hla
     syscall
     
-    # Convertir term2 a entero
+   
     la $a0, term2
     jal string_to_int
-    move $a2, $v0  # Guardar entero en $t2
+    move $a2, $v0 
     
     li $v0, 4
     la $a0, hla
     syscall
 
-    # Realizar operación
+  
     la $a0, operador
     lb $t3, 0($a0)
     sub $t3, $t3, '0'
     
-    li $t5, '+'   # Cargar el carácter '+'
+    li $t5, '+'   
     sub $t5, $t5, '0'
     beq $t3, $t5, suma
-    li $t5, '-'   # Cargar el carácter '-'
+    li $t5, '-'   
     sub $t5, $t5, '0'
     beq $t3, $t5, resta
-    li $t5, '*'   # Cargar el carácter '*'
+    li $t5, '*'   
     sub $t5, $t5, '0'
     beq $t3, $t5, multiplicacion
-    li $t5, '/'   # Cargar el carácter '/'
+    li $t5, '/'   
     sub $t5, $t5, '0' 
     beq $t3, $t5, division
     li $t5, 'v'
@@ -97,10 +108,14 @@ main:
     sub $t5, $t5, '0' 
     beq $t3, $t5, OperationLog
 
-    # En caso de operador no válido, terminar el programa
+    
     j invalid_operator
 
-# Operaciones
+# Sección de Procesamiento de Datos:
+# En esta parte del código, se realiza el procesamiento de los datos ingresados. Dependiendo del 
+# operador ingresado (+, -, *, /), se ejecuta la operación aritmética correspondiente entre los dos
+# números ingresados.
+
 suma:
     add $t4, $a1, $a2
     j imprimir_resultado
@@ -118,41 +133,41 @@ division:
     j imprimir_resultado
     
 OperationRoot:
-    li $t4, 0           # Inicializa el contador de exponente en 0
+    li $t4, 0         
 
 root_loop:
-    mul $t5, $t4, $a1   # $t5 = b^k
-    bge $t5, $a2, end_root  # Salir del bucle si b^k >= a
+    mul $t5, $t4, $a1   
+    bge $t5, $a2, end_root  
     
-    addi $t4, $t4, 1    # Incrementa el contador de exponente
-    j root_loop         # Continúa el bucle
+    addi $t4, $t4, 1    
+    j root_loop        
 
 end_root:
-    bne $t5, $a2, RootSubstract   # Si b^k no es igual a a, restar 1 al resultado
-    j imprimir_resultado          # Retorna al registro de retorno
+    bne $t5, $a2, RootSubstract   
+    j imprimir_resultado          
 
 RootSubstract:
-    subi $t4, $t4, 1    # Si b^k es mayor que a, restar 1 al resultado
-    j imprimir_resultado              # Retorna al registro de retorno
+    subi $t4, $t4, 1    
+    j imprimir_resultado            
     
 OperationMod:
-    div $a1, $a2       # Divide a entre b
-    mfhi $t4           # Obtiene el residuo de la división y lo guarda en t4
+    div $a1, $a2       
+    mfhi $t4           
     j imprimir_resultado
      
 OperationLog:
-    li $t4, 1           # Inicializa el contador de exponente en 0
+    li $t4, 1           
 
 log_loop:
-    mul $t5, $a2, $a2   # $t5 = b^k
-    bge $t5, $a1, end_log  # Salir del bucle si b^k >= a
+    mul $t5, $a2, $a2   
+    bge $t5, $a1, end_log  
     
-    addi $t4, $t4, 1    # Incrementa el contador de exponente
-    j log_loop          # Continúa el bucle
+    addi $t4, $t4, 1    
+    j log_loop         
 
 end_log:
-    subi $t4, $t4, 1    # Reduce el contador en 1 para obtener el mayor k tal que b^k <= a
-    jr $ra              # Retorna al regi
+    subi $t4, $t4, 1   
+    jr $ra              
         
 
 invalid_operator:
@@ -169,6 +184,7 @@ invalid_operator:
 
 imprimir_resultado:
 
+	bgt $t4, 99999999999999, seccionB 
 	move $a0, $t4
 	la $a1, result
 	jal int_to_string
@@ -178,83 +194,98 @@ imprimir_resultado:
 	syscall
 	
 	li $t0, 0x007f1c
-	li $a1, 1600
+	li $a1, 1568
 	li $a2, 16
 	la $a3, result 
 	jal print
+	j lastEnd
+	
+	seccionB:
+	
+	li $t0, 0x007f1c
+	li $a1, 1568
+	li $a2, 16
+	la $a3, max_digits
+	jal print
+	
+	lastEnd:
 	
 	li $v0, 10 
 	syscall
     
 int_to_string:
-    move $t0, $a0       # Guardar el entero en $t0
-    li $t2, 10          # Constante para la base decimal (10)
+    move $t0, $a0      
+    li $t2, 10       
     la $t3, result + 14 
     li $t4, 0           
-    sb $zero, -1($t3)   # Añadir el byte nulo al final del buffer
+    sb $zero, -1($t3)   
 
 convert_loop:
-    beqz $t0, check_zero   # Si $t0 es 0, verificar si hay que añadir '0'
+    beqz $t0, check_zero   
     div $t0, $t0, $t2     
-    mfhi $t5               # Obtener el resto de la división
+    mfhi $t5              
     addi $t5, $t5, '0'    
     subi $t3, $t3, 1       
-    sb $t5, 0($t3)         # Almacenar el carácter en el buffer
+    sb $t5, 0($t3)        
     addi $t4, $t4, 1       
-    j convert_loop         # Repetir el bucle
+    j convert_loop      
 
 check_zero:
-    bnez $t4, store_string # Si hay dígitos, saltar a almacenar la cadena
+    bnez $t4, store_string 
     li $t5, '0'           
     subi $t3, $t3, 1       
-    sb $t5, 0($t3)         # Almacenar '0' en el buffer
+    sb $t5, 0($t3)      
 
 store_string:
-    move $a2, $t3          # Apuntar $a2 al primer carácter del número convertido
-    move $a3, $a1          # Apuntar $a3 al buffer de destino
+    move $a2, $t3         
+    move $a3, $a1         
 
 copy_loop:
-    lb $t6, 0($a2)         # Leer un byte del número convertido
-    beqz $t6, end_copy     # Si es el byte nulo, terminar la copia
+    lb $t6, 0($a2)         
+    beqz $t6, end_copy     
     sb $t6, 0($a3)         
     addi $a2, $a2, 1     
     addi $a3, $a3, 1       
-    j copy_loop            # Repetir hasta que se copien todos los bytes
+    j copy_loop           
 
 end_copy:
-    sb $zero, 0($a3)       # Añadir el byte nulo al final del buffer de destino
-    jr $ra                 # Volver al llamador
+    sb $zero, 0($a3)      
+    jr $ra                 
     
 string_to_int:
-    li $v0, 0        # Inicializar el resultado en 0
-    li $t5, 10       # Constante para la base decimal (10)
+    li $v0, 0        
+    li $t5, 10       
 
 convert_loopINT:
-    lb $t1, 0($a0)   # Cargar el siguiente byte del string
-    beqz $t1, end_convert  # Si es el byte nulo, terminar la conversión
+    lb $t1, 0($a0)   
+    beqz $t1, end_convert  
     
-    # Verificar si el carácter es un dígito válido ('0' a '9')
     li $t2, '0'
     li $t3, '9'
-    blt $t1, $t2, end_convert # Si es menor que '0', terminar la conversión
-    bgt $t1, $t3, end_convert  # Si es mayor que '9', terminar la conversión
+    blt $t1, $t2, end_convert 
+    bgt $t1, $t3, end_convert  
 
-    sub $t1, $t1, '0'  # Convertir el carácter a su valor numérico
+    sub $t1, $t1, '0'  
     mul $v0, $v0, $t5  
     add $v0, $v0, $t1 
     addi $a0, $a0, 1  
     j convert_loopINT    
 
 end_convert:
-    jr $ra  # Volver al llamador
+    jr $ra
+    
+# Sección de Lectura de Entrada
+# Esta sección se encarga de leer la entrada del usuario, es decir, los números y el operador. Aquí se 
+# asegura que los números ingresados sean válidos y maneja cualquier error que pueda ocurrir 
+# durante la entrada.
     
 Leer_entrada:
 	li $t1, 0
-	li $t2, 0xFFFF0004  # Dirección del teclado
+	li $t2, 0xFFFF0004  
 	li $t3, 0xFFFF0000  
 	
 Loop_de_leer:
-	lw $t4, 0($t3)       # lee el estado del teclado en loop
+	lw $t4, 0($t3)       
 	andi $t4, $t4, 0x01  
 	beqz $t4, Loop_de_leer 
 	
@@ -269,7 +300,10 @@ Loop_de_leer:
 Fin_del_loop_de_leer:
 	sb $zero, 0($a0)     
 	jr $ra
-
+# Sección de Configuración de la Pantalla
+# En esta sección, se configura la pantalla y se define cómo se mostrarán los números y los resultados
+# de las operaciones. Se especifica la ubicación de los datos en la pantalla y se prepara para recibir la 
+# entrada del usuario.
 print:
 	li $t1, 0
 	move $t5, $ra
@@ -725,10 +759,3 @@ print_biggerThan:
 	sw $t0, display($t3)
 	
 	jr $ra
-	
-	
-
-	
-	
-	
-	
